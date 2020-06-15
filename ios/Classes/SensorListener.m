@@ -14,18 +14,20 @@
 - (void)startOrientationListener:(void (^)(NSString* orientation)) orientationRetrieved {
     [self initMotionManager];
     if([motionManager isDeviceMotionAvailable] == YES){
-        motionManager.deviceMotionUpdateInterval = 0.1;
+        motionManager.deviceMotionUpdateInterval = 0.5;
         
         [motionManager startDeviceMotionUpdatesToQueue:[NSOperationQueue mainQueue] withHandler:^(CMDeviceMotion *data, NSError *error) {
             NSString *orientation;
             if(fabs(data.gravity.x)>fabs(data.gravity.y)){
                 // we are in landscape-mode
-                if(data.gravity.x>=0){
+                
+                if(data.gravity.x>=0.70){
                     orientation = LANDSCAPE_RIGHT;
                 }
-                else{
+                else if(data.gravity.x<=-0.70){
                     orientation = LANDSCAPE_LEFT;
                 }
+                
             }
             else{
                 // we are in portrait mode
@@ -36,10 +38,11 @@
                     orientation = PORTRAIT_UP;
                 }
             }
-
+            
             if (self->lastOrientation == nil || ![orientation isEqualToString:(self->lastOrientation)]) {
-                self->lastOrientation = orientation;
-                orientationRetrieved(orientation);
+                if(orientation != nil)
+                    self->lastOrientation = orientation;
+                orientationRetrieved(self->lastOrientation);
             }
         }];
     }
